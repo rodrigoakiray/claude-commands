@@ -79,7 +79,7 @@ export function CommandExplorer({ entries }: { entries: CommandEntry[] }) {
   return (
     <div className="flex flex-col gap-3 pb-28">
       <div
-        className="sticky top-0 z-10 -mx-4 px-4 flex flex-col gap-2.5"
+        className="glass-header sticky top-0 z-10 -mx-4 px-4 flex flex-col gap-2.5"
         style={{ paddingTop: "calc(var(--safe-top) + 0.6rem)", paddingBottom: "0.75rem" }}
       >
         <div className="flex items-baseline justify-between px-1">
@@ -90,7 +90,7 @@ export function CommandExplorer({ entries }: { entries: CommandEntry[] }) {
             {filtered.length} entries
           </span>
         </div>
-        <div className="glass-strong rounded-2xl px-3.5 py-1">
+        <div className="rounded-2xl px-3.5 py-1" style={{ background: "var(--glass-fill)" }}>
           <input
             type="search"
             inputMode="search"
