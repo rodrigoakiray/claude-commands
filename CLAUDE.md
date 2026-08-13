@@ -2,9 +2,10 @@
 
 A mobile-first, iOS-style ("liquid glass") reference app for the user's whole
 Claude Code setup: built-in commands (slash/CLI/shortcuts/hooks) plus their
-personal skills, plugins, and subagents — all searchable, filterable by
-practical use case, and favoritable. Fully static — no backend, no database,
-no auth. Deployed on Vercel from the `main` branch on GitHub.
+personal skills, plugins, and subagents — all searchable, filterable along
+two independent axes (practical use case, and type: Commands/Skills/Plugins/
+Subagents), and favoritable. Fully static — no backend, no database, no
+auth. Deployed on Vercel from the `main` branch on GitHub.
 
 `CLAUDE.md` is the single source of truth for every coding agent in this repo.
 `AGENTS.md` only routes other tools here and carries no rules of its own
@@ -29,20 +30,24 @@ Biases caution over speed. For trivial tasks, use judgment and skip the ceremony
 Single Next.js App Router app, no monorepo. `data/index.ts` (`allEntries`) is
 the merged catalog every component renders from; it combines the two data
 sources below. Every entry — regardless of source — shares one `CommandEntry`
-shape with two independent axes: `kind` (its technical type) and
-`practicalCategory` (what it's *for*, the primary grouping the UI shows).
-The one client/server split is `components/CommandExplorer.tsx`; everything
-above it in the tree is a Server Component.
+shape with two independent classification axes, each with its own filter
+rail: `practicalCategory` (what it's *for* — Session & Context, Finance &
+Valuation, etc.) and `kind` (its granular technical type — slash/cli/
+shortcut/config/skill/plugin/subagent), which `KIND_TO_TYPE_GROUP` collapses
+into the coarser `TypeGroup` the type rail filters on (Commands/Skills/
+Plugins/Subagents). The one client/server split is
+`components/CommandExplorer.tsx`; everything above it in the tree is a
+Server Component.
 
 | Path | Responsibility | Agent may write? |
 | --- | --- | --- |
 | `data/commands.ts` | Built-in Claude Code commands (slash/CLI/shortcut/config) | Yes |
 | `data/skills.ts` | The user's personal skills, plugins, and subagent types | Yes |
 | `data/index.ts` | Merges the two into `allEntries` — import this, not the individual files | Yes |
-| `lib/types.ts` | `CommandEntry`, `EntryKind`, `PracticalCategory` shape shared by data and UI | Yes |
+| `lib/types.ts` | `CommandEntry`, `EntryKind`, `PracticalCategory`, `TypeGroup` shape shared by data and UI | Yes |
 | `lib/useFavorites.ts` | localStorage-backed favorites store (`useSyncExternalStore`) | Yes |
-| `components/CommandExplorer.tsx` | `'use client'` boundary: search, category filter, browse/favorites view | Yes |
-| `components/GlassRow.tsx`, `CategoryRail.tsx`, `TabBar.tsx` | Presentational, rendered inside the client tree | Yes |
+| `components/CommandExplorer.tsx` | `'use client'` boundary: search, both filter rails, browse/favorites view | Yes |
+| `components/GlassRow.tsx`, `CategoryRail.tsx`, `TypeRail.tsx`, `TabBar.tsx` | Presentational, rendered inside the client tree | Yes |
 | `app/` | Routing, layout, metadata/viewport | Yes |
 | `app/globals.css` | Tailwind v4 CSS-first config (no `tailwind.config.*`) plus the liquid-glass tokens (`.glass`, `.glass-strong`, `--kind-*`, light/dark) | Yes |
 | `.next/`, `node_modules/` | Build output / installed deps | NEVER — regenerate with `npm run build` / `npm install` |
@@ -50,8 +55,11 @@ above it in the tree is a Server Component.
 Adding a new command never requires touching a component — append to the
 right data file with a unique `id`. Adding a new `practicalCategory` requires
 updating `lib/types.ts` (`PracticalCategory`, `PRACTICAL_CATEGORY_LABELS`,
-`PRACTICAL_CATEGORY_ORDER`); adding a new `kind` also needs a `KIND_LABELS`
-entry and a color in `GlassRow.tsx`'s `KIND_DOT` map.
+`PRACTICAL_CATEGORY_ORDER`); adding a new `kind` needs a `KIND_LABELS` entry,
+a color in `GlassRow.tsx`'s `KIND_DOT` map, and a `KIND_TO_TYPE_GROUP` entry
+mapping it to one of the four existing type groups (that set is meant to
+stay fixed — a genuinely new type group also needs `TYPE_GROUP_LABELS` and
+`TYPE_GROUP_ORDER`).
 
 ## Commands
 
@@ -86,8 +94,8 @@ type errors and on any invalid static export.
 - **Favorites**: persisted client-side only via `lib/useFavorites.ts`
   (localStorage) — there is no account system, so favorites are per-device.
 - **Responsive targets**: single column on iPhone (~390px); the row grid in
-  `CommandExplorer.tsx` (`md:grid-cols-2 lg:grid-cols-3`) uses the extra
-  width from iPad mini (~768px) up — don't drop those breakpoints.
+  `CommandExplorer.tsx` (`md:grid-cols-2`) tops out at 2 columns from iPad
+  mini (~768px) up — don't add a 3-column breakpoint back.
 
 ## Boundaries & Data Security
 
@@ -108,7 +116,8 @@ type errors and on any invalid static export.
   and filters correctly in the browser.
 - **Refresh skills/plugins/subagents**: re-derive `data/skills.ts` from the
   user's actual current skill/plugin/subagent roster rather than hand-editing
-  stale entries → verify: counts in the category rail change accordingly.
+  stale entries → verify: counts in both the category rail and the type
+  rail change accordingly.
 - **Add a practical category**: update `lib/types.ts` together with any
   `CATEGORY_MAP`-style assignment used when generating data → verify: the
   new category's tab count matches the entries tagged with it.
@@ -124,8 +133,9 @@ Done means verified, not written:
 
 - `npm run build` and `npm run lint` pass locally.
 - Manual check: `npm run dev`, open in a browser, and confirm the search bar,
-  category rail, row list, and floating tab bar stay usable at both ~390px
-  (iPhone) and ~768px (iPad mini) widths, and in both light and dark.
+  both filter rails (category and type), row list, and floating tab bar stay
+  usable at both ~390px (iPhone) and ~768px (iPad mini) widths, and in both
+  light and dark.
 
 ## Project Memory
 
