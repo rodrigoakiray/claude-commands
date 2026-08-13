@@ -49,7 +49,7 @@ Server Component.
 | `components/CommandExplorer.tsx` | `'use client'` boundary: search, both filter rails, browse/favorites view | Yes |
 | `components/GlassRow.tsx`, `CategoryRail.tsx`, `TypeRail.tsx`, `TabBar.tsx` | Presentational, rendered inside the client tree | Yes |
 | `app/` | Routing, layout, metadata/viewport | Yes |
-| `app/globals.css` | Tailwind v4 CSS-first config (no `tailwind.config.*`) plus the liquid-glass tokens (`.glass`, `.glass-strong`, `--kind-*`, light/dark) | Yes |
+| `app/globals.css` | Tailwind v4 CSS-first config (no `tailwind.config.*`) plus the liquid-glass tokens (`.glass`, `.glass-strong`, `.glass-header`, `--kind-*`, light/dark) | Yes |
 | `.next/`, `node_modules/` | Build output / installed deps | NEVER — regenerate with `npm run build` / `npm install` |
 
 Adding a new command never requires touching a component — append to the
@@ -85,7 +85,11 @@ type errors and on any invalid static export.
   liquid-glass materials defined in `app/globals.css`. Colors read from the
   CSS custom properties there (`var(--label)`, `var(--accent)`, `--kind-*`,
   etc.) so light/dark stay in one place — don't hardcode hex colors in
-  components.
+  components. Any full-bleed sticky/fixed bar (nav bars, headers) needs an
+  opaque background of its own — use `.glass-header`, not `.glass`/
+  `.glass-strong` (those have a border on all four sides, wrong for an
+  edge-to-edge bar) and never leave a sticky wrapper transparent between its
+  children, or scrolled content bleeds through illegibly.
 - **Fonts**: system stack only (`-apple-system` / `ui-monospace`) for
   authentic iOS rendering on-device — don't reintroduce a web-font import.
 - **Client boundary**: keep `'use client'` scoped to `CommandExplorer.tsx`
@@ -126,6 +130,15 @@ type errors and on any invalid static export.
   for the new commit.
 
 ## Gotchas
+
+- In any rule declaring both `backdrop-filter` and `-webkit-backdrop-filter`,
+  put the `-webkit-` one first and the standard one last. The build's CSS
+  minifier once deduped them and kept only the last declaration — with the
+  standard property listed first, it silently dropped `backdrop-filter`
+  everywhere, so every glass surface rendered as flat translucent color with
+  no actual blur. Verify after touching this CSS: inspect a `.glass*` element
+  in devtools and confirm `backdrop-filter` (not just the `-webkit-` one)
+  shows a non-`none` computed value.
 
 ## Verification
 
