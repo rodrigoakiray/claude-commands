@@ -75,3 +75,26 @@ export const PRACTICAL_CATEGORY_ORDER: PracticalCategory[] = [
   "security",
   "meta",
 ];
+
+// Second, independent classification axis: what kind of thing this is at a
+// coarse level, collapsing the built-in-command kinds into one bucket.
+export type TypeGroup = "commands" | "skills" | "plugins" | "subagents";
+
+export const KIND_TO_TYPE_GROUP: Record<EntryKind, TypeGroup> = {
+  slash: "commands",
+  cli: "commands",
+  shortcut: "commands",
+  config: "commands",
+  skill: "skills",
+  plugin: "plugins",
+  subagent: "subagents",
+};
+
+export const TYPE_GROUP_LABELS: Record<TypeGroup, string> = {
+  commands: "Commands",
+  skills: "Skills",
+  plugins: "Plugins",
+  subagents: "Subagents",
+};
+
+export const TYPE_GROUP_ORDER: TypeGroup[] = ["commands", "skills", "plugins", "subagents"];

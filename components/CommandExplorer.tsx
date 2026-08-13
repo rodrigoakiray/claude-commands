@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import type { CommandEntry, PracticalCategory } from "@/lib/types";
-import { PRACTICAL_CATEGORY_LABELS, PRACTICAL_CATEGORY_ORDER } from "@/lib/types";
+import { KIND_TO_TYPE_GROUP, PRACTICAL_CATEGORY_LABELS, PRACTICAL_CATEGORY_ORDER, TYPE_GROUP_ORDER } from "@/lib/types";
 import { CategoryRail, type CategoryFilter } from "@/components/CategoryRail";
+import { TypeRail, type TypeFilter } from "@/components/TypeRail";
 import { GlassRow } from "@/components/GlassRow";
 import { TabBar, type View } from "@/components/TabBar";
 import { useFavorites } from "@/lib/useFavorites";
@@ -20,6 +21,7 @@ function matchesQuery(entry: CommandEntry, query: string): boolean {
 export function CommandExplorer({ entries }: { entries: CommandEntry[] }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<CategoryFilter>("all");
+  const [type, setType] = useState<TypeFilter>("all");
   const [view, setView] = useState<View>("browse");
   const { toggle, isFavorite, hydrated } = useFavorites();
 
@@ -33,17 +35,38 @@ export function CommandExplorer({ entries }: { entries: CommandEntry[] }) {
     return viewEntries.filter((e) => matchesQuery(e, normalized));
   }, [viewEntries, query]);
 
-  const counts = useMemo(() => {
-    const base: Record<CategoryFilter, number> = { all: searched.length } as Record<CategoryFilter, number>;
-    for (const cat of PRACTICAL_CATEGORY_ORDER) base[cat] = 0;
-    for (const entry of searched) base[entry.practicalCategory] += 1;
-    return base;
-  }, [searched]);
-
-  const filtered = useMemo(
+  // Two independent facets — each rail's counts reflect the OTHER facet's
+  // current selection, so picking one shows what the combination yields.
+  const byTypeOnly = useMemo(
     () => (category === "all" ? searched : searched.filter((e) => e.practicalCategory === category)),
     [searched, category]
   );
+
+  const byCategoryOnly = useMemo(
+    () => (type === "all" ? searched : searched.filter((e) => KIND_TO_TYPE_GROUP[e.kind] === type)),
+    [searched, type]
+  );
+
+  const categoryCounts = useMemo(() => {
+    const base: Record<CategoryFilter, number> = { all: byCategoryOnly.length } as Record<CategoryFilter, number>;
+    for (const cat of PRACTICAL_CATEGORY_ORDER) base[cat] = 0;
+    for (const entry of byCategoryOnly) base[entry.practicalCategory] += 1;
+    return base;
+  }, [byCategoryOnly]);
+
+  const typeCounts = useMemo(() => {
+    const base: Record<TypeFilter, number> = { all: byTypeOnly.length } as Record<TypeFilter, number>;
+    for (const t of TYPE_GROUP_ORDER) base[t] = 0;
+    for (const entry of byTypeOnly) base[KIND_TO_TYPE_GROUP[entry.kind]] += 1;
+    return base;
+  }, [byTypeOnly]);
+
+  const filtered = useMemo(() => {
+    let result = searched;
+    if (category !== "all") result = result.filter((e) => e.practicalCategory === category);
+    if (type !== "all") result = result.filter((e) => KIND_TO_TYPE_GROUP[e.kind] === type);
+    return result;
+  }, [searched, category, type]);
 
   const groups = useMemo(() => {
     if (category !== "all") return [{ key: category as PracticalCategory, items: filtered }];
@@ -64,7 +87,7 @@ export function CommandExplorer({ entries }: { entries: CommandEntry[] }) {
             {view === "favorites" ? "Favorites" : "Claude Commands"}
           </span>
           <span className="text-[11px] tabular-nums" style={{ color: "var(--label-tertiary)" }}>
-            {searched.length} entries
+            {filtered.length} entries
           </span>
         </div>
         <div className="glass-strong rounded-2xl px-3.5 py-1">
@@ -78,7 +101,8 @@ export function CommandExplorer({ entries }: { entries: CommandEntry[] }) {
             style={{ color: "var(--label)" }}
           />
         </div>
-        <CategoryRail active={category} onChange={setCategory} counts={counts} />
+        <CategoryRail active={category} onChange={setCategory} counts={categoryCounts} />
+        <TypeRail active={type} onChange={setType} counts={typeCounts} />
       </div>
 
       {view === "favorites" && hydrated && filtered.length === 0 ? (
@@ -100,7 +124,7 @@ export function CommandExplorer({ entries }: { entries: CommandEntry[] }) {
                 {PRACTICAL_CATEGORY_LABELS[group.key]}
                 <span className="ml-1.5 opacity-70 tabular-nums">{group.items.length}</span>
               </h2>
-              <ul className="glass rounded-2xl overflow-hidden md:grid md:grid-cols-2 lg:grid-cols-3">
+              <ul className="glass rounded-2xl overflow-hidden md:grid md:grid-cols-2">
                 {group.items.map((entry) => (
                   <GlassRow
                     key={entry.id}
