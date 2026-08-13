@@ -1,28 +1,124 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces */
+  --bg-0: #eef1f6;
+  --bg-1: #e4e9f2;
+  --bg-mesh-a: #dce7ff;
+  --bg-mesh-b: #ffe4f2;
+  --bg-mesh-c: #e0fff4;
+
+  /* Glass material */
+  --glass-fill: rgba(255, 255, 255, 0.55);
+  --glass-fill-strong: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-border-soft: rgba(255, 255, 255, 0.5);
+  --glass-shadow: rgba(31, 41, 71, 0.12);
+  --specular: rgba(255, 255, 255, 0.9);
+
+  /* Text */
+  --label: #1c1c1e;
+  --label-secondary: rgba(60, 60, 67, 0.68);
+  --label-tertiary: rgba(60, 60, 67, 0.42);
+
+  /* Accents (iOS system palette) */
+  --accent: #007aff;
+  --accent-soft: rgba(0, 122, 255, 0.12);
+  --favorite: #ff9f0a;
+  --favorite-soft: rgba(255, 159, 10, 0.16);
+
+  /* Per-kind identity */
+  --kind-slash: #007aff;
+  --kind-cli: #5856d6;
+  --kind-shortcut: #34c759;
+  --kind-config: #ff9500;
+  --kind-skill: #30b0c7;
+  --kind-plugin: #ff2d55;
+  --kind-subagent: #af52de;
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-0);
+  --color-foreground: var(--label);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg-0: #000000;
+    --bg-1: #0b0b0d;
+    --bg-mesh-a: #1a1030;
+    --bg-mesh-b: #10202b;
+    --bg-mesh-c: #1c1420;
+
+    --glass-fill: rgba(28, 28, 30, 0.55);
+    --glass-fill-strong: rgba(38, 38, 41, 0.78);
+    --glass-border: rgba(255, 255, 255, 0.14);
+    --glass-border-soft: rgba(255, 255, 255, 0.08);
+    --glass-shadow: rgba(0, 0, 0, 0.45);
+    --specular: rgba(255, 255, 255, 0.16);
+
+    --label: #f2f2f7;
+    --label-secondary: rgba(235, 235, 245, 0.6);
+    --label-tertiary: rgba(235, 235, 245, 0.38);
+
+    --accent: #0a84ff;
+    --accent-soft: rgba(10, 132, 255, 0.2);
+    --favorite: #ffb340;
+    --favorite-soft: rgba(255, 179, 64, 0.2);
+
+    --kind-slash: #0a84ff;
+    --kind-cli: #7d7aff;
+    --kind-shortcut: #30d158;
+    --kind-config: #ff9f0a;
+    --kind-skill: #64d2ff;
+    --kind-plugin: #ff375f;
+    --kind-subagent: #bf5af2;
   }
 }
 
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  color: var(--label);
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 0%, var(--bg-mesh-a) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 100% 20%, var(--bg-mesh-b) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 20% 100%, var(--bg-mesh-c) 0%, transparent 55%),
+    var(--bg-0);
+  background-attachment: fixed;
+  min-height: 100dvh;
+}
+
+/* Liquid glass material: a blurred, translucent panel with a bright top
+   highlight and soft bottom shadow, mimicking a physical glass layer. */
+.glass {
+  background: var(--glass-fill);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--glass-border-soft);
+  box-shadow:
+    inset 0 1px 0 var(--specular),
+    0 8px 24px var(--glass-shadow);
+}
+
+.glass-strong {
+  background: var(--glass-fill-strong);
+  backdrop-filter: blur(28px) saturate(1.5);
+  -webkit-backdrop-filter: blur(28px) saturate(1.5);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--specular),
+    0 12px 32px var(--glass-shadow);
 }
 
 .no-scrollbar {
@@ -32,4 +128,10 @@ body {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .transition-glass {
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s ease;
+  }
 }
