@@ -4,6 +4,8 @@ A mobile-first reference app for Claude Code: slash commands, CLI flags,
 keyboard shortcuts, and hooks/permission-mode config — searchable and
 filterable, optimized for iPhone and iPad mini.
 
+Live at [claude-commands-ten.vercel.app](https://claude-commands-ten.vercel.app).
+
 ## Development
 
 ```bash
