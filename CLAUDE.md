@@ -53,9 +53,9 @@ Server Component.
 | --- | --- | --- |
 | `data/commands.ts` | Built-in Claude Code commands (slash/CLI/shortcut/config) | Yes |
 | `data/skills.ts` | The user's personal Claude skills, plugins, and subagent types | Yes |
-| `data/codexCommands.ts` | OpenAI Codex CLI slash commands + a curated top-30 of its official plugins | Yes |
-| `data/geminiCommands.ts` | Google Gemini CLI slash commands + a curated 30 of its official extensions | Yes |
-| `data/kimiCommands.ts` | Kimi Code CLI slash commands + its full plugin marketplace | Yes |
+| `data/codexCommands.ts` | Codex CLI slash commands + the plugins/skills actually installed on this machine | Yes |
+| `data/geminiCommands.ts` | Gemini CLI slash commands + its official extension catalog + installed skills/subagents | Yes |
+| `data/kimiCommands.ts` | Kimi Code CLI slash commands + its plugin marketplace + built-in and shared skills | Yes |
 | `data/index.ts` | Merges all five into `allEntries`, tagging each with its `source` — import this, not the individual files | Yes |
 | `lib/types.ts` | `CommandEntry`, `SourcelessEntry`, `EntryKind`, `PracticalCategory`, `TypeGroup`, `Source` shape shared by data and UI | Yes |
 | `lib/useFavorites.ts` | localStorage-backed favorites store (`useSyncExternalStore`) | Yes |
@@ -147,6 +147,22 @@ type errors and on any invalid static export.
   user's actual current skill/plugin/subagent roster rather than hand-editing
   stale entries → verify: counts in both the category rail and the type
   rail change accordingly.
+- **Re-import installed skills/plugins**: the non-Claude sources carry the
+  user's real local install, read from disk — not a guessed catalog. Scan
+  `~/.agents/skills` (the cross-agent user scope: Codex's documented
+  `$HOME/.agents/skills`, Gemini's alias for `~/.gemini/skills`, and one of
+  Kimi's user scopes — so it is listed under all three, tagged `shared`),
+  plus each tool's own dir: `~/.codex/skills`, `~/.gemini/skills`,
+  `~/.gemini/agents` (subagents). Codex's installed plugins come from the
+  `[plugins."name@marketplace"]` tables in `~/.codex/config.toml` — the
+  marketplace is part of the id, since the same plugin name ships from two
+  marketplaces. Kimi lives in `~/.kimi-code/` (**not** `~/.kimi` — it was
+  renamed in the Kimi Code rebrand). Derive summaries from each `SKILL.md`'s
+  own `description:` frontmatter rather than inventing them, and reuse the
+  category already assigned in `data/skills.ts` when a name matches. When a
+  skill is visible from both a shared and a tool-specific path, keep the
+  tool-specific entry and drop the `shared` duplicate — ids would otherwise
+  collide.
 - **Refresh Codex/Gemini/Kimi commands or plugins**: re-check the tool's own
   current docs — Codex: `learn.chatgpt.com/docs/developer-commands?surface=cli`;
   Gemini: `docs/reference/commands.md` in `github.com/google-gemini/gemini-cli`;
