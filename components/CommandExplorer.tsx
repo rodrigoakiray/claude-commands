@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CommandEntry, PracticalCategory } from "@/lib/types";
+import type { CommandEntry, PracticalCategory, Source } from "@/lib/types";
 import { KIND_TO_TYPE_GROUP, PRACTICAL_CATEGORY_LABELS, PRACTICAL_CATEGORY_ORDER, TYPE_GROUP_ORDER } from "@/lib/types";
 import { CategoryRail, type CategoryFilter } from "@/components/CategoryRail";
 import { TypeRail, type TypeFilter } from "@/components/TypeRail";
+import { SourceMenu } from "@/components/SourceMenu";
 import { GlassRow } from "@/components/GlassRow";
 import { TabBar, type View } from "@/components/TabBar";
 import { useFavorites } from "@/lib/useFavorites";
@@ -19,16 +20,27 @@ function matchesQuery(entry: CommandEntry, query: string): boolean {
 }
 
 export function CommandExplorer({ entries }: { entries: CommandEntry[] }) {
+  const [source, setSource] = useState<Source>("claude");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [type, setType] = useState<TypeFilter>("all");
   const [view, setView] = useState<View>("browse");
   const { toggle, isFavorite, hydrated } = useFavorites();
 
+  function handleSourceChange(next: Source) {
+    setSource(next);
+    // Category/type sets differ per catalog — reset so we don't land on a
+    // selection that yields an empty list in the new source.
+    setCategory("all");
+    setType("all");
+  }
+
+  const sourceEntries = useMemo(() => entries.filter((e) => e.source === source), [entries, source]);
+
   const viewEntries = useMemo(() => {
-    if (view === "favorites") return entries.filter((e) => isFavorite(e.id));
-    return entries;
-  }, [entries, view, isFavorite]);
+    if (view === "favorites") return sourceEntries.filter((e) => isFavorite(e.id));
+    return sourceEntries;
+  }, [sourceEntries, view, isFavorite]);
 
   const searched = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -83,9 +95,14 @@ export function CommandExplorer({ entries }: { entries: CommandEntry[] }) {
         style={{ paddingTop: "calc(var(--safe-top) + 0.6rem)", paddingBottom: "0.75rem" }}
       >
         <div className="flex items-baseline justify-between px-1">
-          <span className="text-[13px] font-semibold" style={{ color: "var(--label)" }}>
-            {view === "favorites" ? "Favorites" : "Claude Commands"}
-          </span>
+          <div className="flex items-baseline gap-1.5">
+            <SourceMenu active={source} onChange={handleSourceChange} />
+            {view === "favorites" && (
+              <span className="text-[12px]" style={{ color: "var(--label-tertiary)" }}>
+                · Favorites
+              </span>
+            )}
+          </div>
           <span className="text-[11px] tabular-nums" style={{ color: "var(--label-tertiary)" }}>
             {filtered.length} entries
           </span>

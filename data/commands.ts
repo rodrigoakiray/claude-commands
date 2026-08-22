@@ -1,10 +1,10 @@
-import type { CommandEntry } from "@/lib/types";
+import type { SourcelessEntry } from "@/lib/types";
 
 // Built-in Claude Code commands: slash commands, CLI flags, keyboard
 // shortcuts, and hooks/permission-mode config. Compiled from
 // https://code.claude.com/docs/en/commands and current CLI behavior;
 // re-verify against release notes when Claude Code ships breaking changes.
-export const builtinCommands: CommandEntry[] = [
+export const builtinCommands: SourcelessEntry[] = [
   {
     id: "slash-add-dir-path",
     name: "/add-dir <path>",

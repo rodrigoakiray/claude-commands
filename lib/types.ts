@@ -32,7 +32,12 @@ export interface CommandEntry {
   details?: string;
   tags?: string[];
   pluginNamespace?: string;
+  source: Source;
 }
+
+// Entry shape as authored in each per-source data file, before the `source`
+// tag is stamped on at the merge point in data/index.ts.
+export type SourcelessEntry = Omit<CommandEntry, "source">;
 
 export const KIND_LABELS: Record<EntryKind, string> = {
   slash: "Slash",
@@ -51,13 +56,13 @@ export const PRACTICAL_CATEGORY_LABELS: Record<PracticalCategory, string> = {
   settings: "Settings & Permissions",
   editing: "Editing & Shortcuts",
   platform: "Integrations & Platform",
-  deploy: "Deploy & Vercel",
+  deploy: "Deploy & Infra",
   understanding: "Code Understanding",
   finance: "Finance & Valuation",
   data: "Data & Engineering",
   design: "Design & Visualization",
   security: "Security",
-  meta: "Claude Code Meta",
+  meta: "Meta",
 };
 
 export const PRACTICAL_CATEGORY_ORDER: PracticalCategory[] = [
@@ -98,3 +103,17 @@ export const TYPE_GROUP_LABELS: Record<TypeGroup, string> = {
 };
 
 export const TYPE_GROUP_ORDER: TypeGroup[] = ["commands", "skills", "plugins", "subagents"];
+
+// Third, independent classification axis: which tool this entry belongs to.
+// Unlike category/type, this is a single-select catalog switcher, not a
+// multi-value filter rail — there is no "all sources" aggregate view.
+export type Source = "claude" | "codex" | "gemini" | "kimi";
+
+export const SOURCE_LABELS: Record<Source, string> = {
+  claude: "Claude Commands",
+  codex: "Codex Commands",
+  gemini: "Gemini Commands",
+  kimi: "Kimi Commands",
+};
+
+export const SOURCE_ORDER: Source[] = ["claude", "codex", "gemini", "kimi"];

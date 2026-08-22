@@ -1,9 +1,9 @@
-import type { CommandEntry } from "@/lib/types";
+import type { SourcelessEntry } from "@/lib/types";
 
 // User's installed skills, plugins, and subagent types — personal to this
 // Claude Code setup. Replaced wholesale when the skill/plugin/subagent
 // roster changes; re-derive rather than hand-edit individual entries.
-export const skillEntries: CommandEntry[] = [
+export const skillEntries: SourcelessEntry[] = [
   {
     id: "skill-90-days",
     name: "90-days",
