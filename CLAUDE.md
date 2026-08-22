@@ -157,7 +157,13 @@ type errors and on any invalid static export.
   `[plugins."name@marketplace"]` tables in `~/.codex/config.toml` — the
   marketplace is part of the id, since the same plugin name ships from two
   marketplaces. Kimi lives in `~/.kimi-code/` (**not** `~/.kimi` — it was
-  renamed in the Kimi Code rebrand). Derive summaries from each `SKILL.md`'s
+  renamed in the Kimi Code rebrand); it has no `skills/` dir of its own, so
+  also read the `extra_skill_dirs` / `extra_agent_dirs` arrays in
+  `~/.kimi-code/config.toml` — they point at a project's `.claude/` dir and
+  load in Kimi at user scope, so they belong in the Kimi catalog.
+  `~/.claude/skills-off` holds skills the user has **disabled**: they look
+  identical to installed ones but do not load, so exclude them — and drop any
+  catalog entry that has moved there. Derive summaries from each `SKILL.md`'s
   own `description:` frontmatter rather than inventing them, and reuse the
   category already assigned in `data/skills.ts` when a name matches. When a
   skill is visible from both a shared and a tool-specific path, keep the
