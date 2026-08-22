@@ -193,15 +193,41 @@ type errors and on any invalid static export.
   in devtools and confirm `backdrop-filter` (not just the `-webkit-` one)
   shows a non-`none` computed value.
 
+- **This repo lives inside a OneDrive-synced folder**, which intermittently
+  breaks builds in ways that look like code bugs but are not. `next build`
+  has failed on `node_modules/next/dist/**` files that OneDrive was holding
+  as un-hydrated cloud placeholders — `os error 389` / `os error 426`, on a
+  *different* file each retry. Reading the stuck file directly hangs, then
+  returns "Permission denied". Retrying does not help; the fix is
+  `rm -rf node_modules && npm install`. Separately, a stale 0-byte
+  `.git/index.lock` can appear with no git process running and block
+  `git add` — safe to delete once `tasklist` confirms no `git` process, since
+  `.git/index` is a different file. Don't debug the diff when a build fails
+  on a `node_modules` path with an `os error 3xx/4xx`.
+
+- The SessionStart hook claims the Vercel CLI is not installed. It is
+  (`vercel` on PATH, project already linked via a gitignored `.vercel/`).
+  Ignore the hook and just run the CLI. `vercel inspect` does not print the
+  production alias — `vercel project ls` lists it under "Latest Production
+  URL" (currently `claude-commands-ten.vercel.app`).
+
 ## Verification
 
 Done means verified, not written:
 
 - `npm run build` and `npm run lint` pass locally.
+- **Data check (do this for any data-file change):** `curl` the dev server or
+  the production URL and grep the SSR payload — entry count per `source`, and
+  that every `id` is unique (`... | sort -u | wc -l` must equal the total).
+  Duplicate ids silently break favorites and React keys, and a build passing
+  proves nothing about them. This catches wiring and import errors that a
+  type-check cannot.
 - Manual check: `npm run dev`, open in a browser, and confirm the search bar,
-  both filter rails (category and type), row list, and floating tab bar stay
-  usable at both ~390px (iPhone) and ~768px (iPad mini) widths, and in both
-  light and dark.
+  the source menu, both filter rails (category and type), row list, and
+  floating tab bar stay usable at both ~390px (iPhone) and ~768px (iPad mini)
+  widths, and in both light and dark. If the Chrome extension isn't connected
+  this step cannot be done by an agent — say so explicitly rather than
+  reporting the change as fully verified.
 
 ## Project Memory
 
